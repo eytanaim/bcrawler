@@ -9,6 +9,7 @@ import random
 from concurrent.futures.thread import ThreadPoolExecutor
 import concurrent.futures
 import logging
+import re
 import requests
 import sys
 import urllib3
@@ -23,6 +24,7 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger()
 console_handler = logging.StreamHandler(sys.stdout)
 logger.addHandler(console_handler)
+logger.setLevel(logging.DEBUG)
 logger.setLevel(logging.INFO)
 
 threads_count = 10
@@ -38,7 +40,7 @@ def scan_bucket(b: str):
     result.details = ""
     try:
         url = f"http://{b}.s3.amazonaws.com"
-        r = requests.head(url)
+        r = requests.get(url)
         logger.debug(f"{url}: {r.status_code}")
         result.details = r.status_code
         if r.status_code == 403:
@@ -49,7 +51,7 @@ def scan_bucket(b: str):
     # except urllib3.exceptions.NewConnectionError as e:
     #     logger.error("Rate limit...")
     except requests.exceptions.ConnectionError as e:
-        logger.error("Rate limit...")
+        logger.exception("Rate limit...")
     except Exception:
         logger.exception("Something went wrong")
     # try:
@@ -73,7 +75,13 @@ dots_and_hyphens  = ""
 def bucket_name_validator(name: str):
     if len(name) < 3 or len(name) > 63:
         return False
+    if name[0] == "." or name[-1:] == ".":
+        return False
     if name[0] == "-" or name[-1:] == "-":
+        return False
+    if name.find("..") != -1:
+        return False
+    if re.search(r"[^a-z0-9-.]", name):
         return False
     return True
     
@@ -101,7 +109,7 @@ def company_list():
             out_companies.extend(company.split(" "))
             out_companies.append(company.replace(" ", "-"))
             out_companies.append(company.replace(" ", "."))
-    return out_companies
+    return sorted(set(out_companies))
 
 def words_list():
     loaded_words = [ line.rstrip() for line in open("words.list", 'r') ]
@@ -114,8 +122,10 @@ buckets = ["pivot-development"]
 
 names = name_generator(4,1369)
 names = company_list()
-names = filter(bucket_name_validator, company_list)
-buckets = [next(names) for _ in range(100000)]
+names = filter(bucket_name_validator, names)
+buckets = list(names)
+logger.info(f"Scanning  {len(buckets)}")
+#[next(names) for _ in range(1000)]
 # print(len(list(names)))
 # exit
 # for b in buckets:
