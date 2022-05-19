@@ -4,8 +4,8 @@ from contextlib import suppress
 from itertools import cycle
 import string
 import random
-import boto3
-import botocore.exceptions
+#port boto3
+#mport botocore.exceptions
 from concurrent.futures.thread import ThreadPoolExecutor
 import concurrent.futures
 import logging
@@ -114,7 +114,7 @@ buckets = ["pivot-development"]
 
 names = name_generator(4,1369)
 names = filter(bucket_name_validator, names)
-buckets = [next(names) for _ in range(100)]
+buckets = [next(names) for _ in range(100000)]
 # print(len(list(names)))
 # exit
 # for b in buckets:
