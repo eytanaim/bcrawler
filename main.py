@@ -103,17 +103,18 @@ def company_list():
             out_companies.append(company.replace(" ", "."))
     return out_companies
 
-c = company_list()
-logger.info(len(list(c)))
-# str = ''.join(random.choice(letters) for i in range(3))
-strs = [ ''.join(random.choice(letters + digits + dots_and_hyphens) for i in range(3)) for j in range(22*22*22*22) ]
-# result_str = [  for j in range(100)) ]
-buckets = strs
+def words_list():
+    loaded_words = [ line.rstrip() for line in open("words.list", 'r') ]
+    return loaded_words
+
+# c = company_list()
+# logger.info(len(list(c)))
 # buckets = ["sdf", "aaa", "aab", "pivot-development", "imperva-snapshot-cloudformation", "Sdf"]
 buckets = ["pivot-development"]
 
 names = name_generator(4,1369)
-names = filter(bucket_name_validator, names)
+names = company_list()
+names = filter(bucket_name_validator, company_list)
 buckets = [next(names) for _ in range(100000)]
 # print(len(list(names)))
 # exit
