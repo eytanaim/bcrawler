@@ -90,6 +90,21 @@ def name_generator(characters: int, offset = 1369):
             current = current//base
         yield name
 
+def company_list():
+    loaded_companies = [ line.rstrip() for line in open("companies.list", 'r') ]
+    companies = map(lambda a: a.lower(), loaded_companies)
+    out_companies = []
+    for company in companies:
+        if " " not in company:
+            out_companies.append(company)
+        else:
+            out_companies.extend(company.split(" "))
+            out_companies.append(company.replace(" ", "-"))
+            out_companies.append(company.replace(" ", "."))
+    return out_companies
+
+c = company_list()
+logger.info(len(list(c)))
 # str = ''.join(random.choice(letters) for i in range(3))
 strs = [ ''.join(random.choice(letters + digits + dots_and_hyphens) for i in range(3)) for j in range(22*22*22*22) ]
 # result_str = [  for j in range(100)) ]
