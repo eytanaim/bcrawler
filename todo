@@ -1,5 +1,3 @@
-GET
-HEAD
 I can approach all regions. 302 means - it exists:
     pivot-development.s3-us-west-1.amazonaws.com
     https://bucket-name.s3.us-east-1.amazonaws.com
@@ -7,19 +5,4 @@ I can approach all regions. 302 means - it exists:
     s3 ls ..
     
     
-    try http vs https
-    
     multiple ips
-    iGET
-HEAD
-I can approach all regions. 302 means - it exists:
-    pivot-development.s3-us-west-1.amazonaws.com
-    https://bucket-name.s3.us-east-1.amazonaws.com
-    https://s3.Region.amazonaws.com/bucket-name/key-name
-    s3 ls ..
-    
-    
-    try http vs https
-    
-    multiple ips
-    

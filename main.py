@@ -27,10 +27,38 @@ logger.addHandler(console_handler)
 logger.setLevel(logging.DEBUG)
 logger.setLevel(logging.INFO)
 
-threads_count = 10
+threads_count = 1
 
 class Empty:
     pass
+
+def urls():
+    regions = [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+        ]
+    protocols = [ "http", "https" ]
+    urls = [ f"{proto}://{{bucket_name}}.s3.{r}.amazonaws.com"  for r in regions for proto in protocols ]
+    return urls
 
 def scan_bucket(b: str):
     result = Empty()
@@ -38,11 +66,19 @@ def scan_bucket(b: str):
     result.exists = False
     result.public = False
     result.details = ""
+    requests_methods = [ requests.get, requests.head ]
     try:
-        url = f"http://{b}.s3.amazonaws.com"
-        r = requests.get(url)
+        url = random.choice(urls()).format(bucket_name=b)
+        
+        method = random.choice(requests_methods)
+        r = method(url)
         logger.debug(f"{url}: {r.status_code}")
+        if r.status_code == 301:
+            r = method(f"https://{b}.s3.amazonaws.com")
+            logger.debug(f"{url}: {r.status_code}")
+        
         result.details = r.status_code
+
         if r.status_code == 403:
             result.exists = True
         elif r.status_code // 100 != 4:
@@ -124,6 +160,7 @@ names = name_generator(4,1369)
 names = company_list()
 names = filter(bucket_name_validator, names)
 buckets = list(names)
+
 logger.info(f"Scanning  {len(buckets)}")
 #[next(names) for _ in range(1000)]
 # print(len(list(names)))
