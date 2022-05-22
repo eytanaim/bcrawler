@@ -35,6 +35,8 @@ class Empty:
     pass
 
 def urls():
+    # return ["https://myaccount.blob.core.windows.net/{bucket_name}"]
+    # return ["http://{bucket_name}.storage.googleapis.com"]
     regions = [
         "af-south-1",
         "ap-east-1",
@@ -136,8 +138,8 @@ def name_generator(characters: int, offset = 1369):
             current = current//base
         yield name
 
-def company_list():
-    loaded_companies = [ line.rstrip() for line in open("companies.list", 'r') ]
+def file_list(file: str):
+    loaded_companies = [ line.rstrip() for line in open(file, 'r') ]
     companies = map(lambda a: a.lower(), loaded_companies)
     out_companies = []
     for company in companies:
@@ -149,18 +151,26 @@ def company_list():
             out_companies.append(company.replace(" ", "."))
     return sorted(set(out_companies))
 
-def words_list():
-    loaded_words = [ line.rstrip() for line in open("words.list", 'r') ]
-    return loaded_words
+def words_and_companies():
+    l1 = file_list(file="companies.list")
+    l2 = file_list(file="words.list")
+    l = l1 + l2
+    for i in l:
+        for j in l:
+            yield j + i
+            yield j + "-" + i
+            yield j + "." + i
 
 # c = company_list()
 # logger.info(len(list(c)))
 # buckets = ["sdf", "aaa", "aab", "pivot-development", "imperva-snapshot-cloudformation", "Sdf"]
 buckets = ["pivot-development"]
 
-names = name_generator(4,1369)
-names = company_list()
+names = name_generator(3)
+# names = file_list(file="companies.list")
+names = file_list(file="words.list")
 names = filter(bucket_name_validator, names)
+buckets = names
 buckets = list(names)
 
 logger.info(f"Scanning  {len(buckets)}")
@@ -177,6 +187,7 @@ if __name__ == '__main__':
     public = 0
     start_time = datetime.now()
     public_buckets = []
+    public_buckets = []
     try:
         with ThreadPoolExecutor(max_workers=threads_count) as executor:
             try:
@@ -187,19 +198,21 @@ if __name__ == '__main__':
                     # print(f"Bucket {a.bucket}..")
                     if a.exists:
                         exists = exists + 1
+                        with open('aws_exist_buckets.list', 'a') as fp:
+                            fp.write("%s\n" % a.bucket)
+                    else:
+                        with open('aws_none_exist_buckets.list', 'a') as fp:
+                                fp.write("%s\n" % a.bucket)
                     if a.public:
                         elasped_time = datetime.now() - start_time
                         elasped_time.total_seconds()
                         public = public + 1
                         public_buckets.append(a.bucket)
                         print(f"scan rate: 1 per {round(elasped_time.total_seconds() / public, 0)} seconds. public-per-open: {public}/{exists} - {round(100 * public/exists, 2)}% - public-per-guess: {public}/{tries} - {round(100 * public/tries, 2)}% - exists-per-guess: {exists}/{tries} - {round(100 * exists/tries, 2)}% - Bucket {a.bucket} is open to the world! details: {a.details}")
+                        with open('aws_public_buckets.list', 'a') as fp:
+                            fp.write("%s\n" % a.bucket)
             except Exception as e:
                 logger.exception("Something went wrong with future")
     except Exception as e:
         logger.exception("Something went wrong with pool creation")
-    
-    with open(r'public_buckets.list', 'a') as fp:
-        for b in public_buckets:
-            # write each item on a new line
-            fp.write("%s\n" % b)
     
