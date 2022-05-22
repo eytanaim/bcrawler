@@ -27,7 +27,9 @@ logger.addHandler(console_handler)
 logger.setLevel(logging.DEBUG)
 logger.setLevel(logging.INFO)
 
-threads_count = 1
+urllib3.disable_warnings()
+
+threads_count = 5
 
 class Empty:
     pass
@@ -71,7 +73,7 @@ def scan_bucket(b: str):
         url = random.choice(urls()).format(bucket_name=b)
         
         method = random.choice(requests_methods)
-        r = method(url)
+        r = method(url, verify=False)
         logger.debug(f"{url}: {r.status_code}")
         if r.status_code == 301:
             r = method(f"https://{b}.s3.amazonaws.com")
